@@ -45,7 +45,7 @@
                 @endif
 
                 <!-- Search Results Alert with Auto-dismiss -->
-                @if(isset($search) && $search)
+                @if(isset($search) && $search && $patients->count() > 0)
                     <div class="alert alert-info alert-dismissible fade show auto-dismiss-alert" role="alert">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
@@ -62,6 +62,8 @@
                     </div>
                 @endif
 
+                <!-- Only show table if patients exist -->
+                @if($patients->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover" id="patientsTable" width="100%" cellspacing="0">
                         <thead class="thead-light">
@@ -77,130 +79,116 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if($patients->count() > 0)
-                                @foreach($patients as $patient)
-                                <tr>
-                                    <td>
-                                        <strong class="text-primary">#{{ $patient->id }}</strong>
-                                    </td>
-                                    <td>
-                                        <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
-                                    </td>
-                                    <td>{{ $patient->date_of_birth->format('M d, Y') }}</td>
-                                    <td>
-                                        <span class="badge bg-info text-white">{{ $patient->date_of_birth->age }} years</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ $patient->gender == 'male' ? 'primary' : ($patient->gender == 'female' ? 'danger' : 'secondary') }}">
-                                            <i class="fas fa-{{ $patient->gender == 'male' ? 'mars' : ($patient->gender == 'female' ? 'venus' : 'genderless') }} me-1"></i>
-                                            {{ ucfirst($patient->gender) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <i class="fas fa-phone text-muted me-1"></i>{{ $patient->phone }}
-                                    </td>
-                                    <td>
-                                        @if($patient->email)
-                                            <i class="fas fa-envelope text-muted me-1"></i>
-                                            <small>{{ $patient->email }}</small>
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <!-- View Button -->
-                                            <a href="{{ route('patients.show', $patient->id) }}" 
-                                               class="btn btn-info btn-sm px-2" 
-                                               title="View Patient Details"
-                                               data-bs-toggle="tooltip">
-                                                <i class="fas fa-eye fa-fw"></i>
-                                            </a>
-                                            
-                                            <!-- Edit Button -->
-                                            <a href="{{ route('patients.edit', $patient->id) }}" 
-                                               class="btn btn-warning btn-sm px-2" 
-                                               title="Edit Patient"
-                                               data-bs-toggle="tooltip">
-                                                <i class="fas fa-edit fa-fw"></i>
-                                            </a>
-                                            
-                                            <!-- Delete Button -->
-                                            <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-danger btn-sm px-2" 
-                                                        title="Delete Patient"
-                                                        data-bs-toggle="tooltip"
-                                                        onclick="return confirm('Are you sure you want to delete patient #{{ $patient->id }}? This action cannot be undone.')">
-                                                    <i class="fas fa-trash fa-fw"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            @else
-                                <tr>
-                                    <td colspan="8" class="text-center py-5">
-                                        <div class="text-muted">
-                                            <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
-                                            <h5>
-                                                @if(isset($search) && $search)
-                                                    No patients found for "{{ $search }}"
-                                                @else
-                                                    No Patients Found
-                                                @endif
-                                            </h5>
-                                            <p class="mb-3">
-                                                @if(isset($search) && $search)
-                                                    No patients match your search criteria.
-                                                @else
-                                                    Get started by registering your first patient.
-                                                @endif
-                                            </p>
-                                            
-                                            <!-- Auto-redirect section -->
-                                            @if(isset($search) && $search)
-                                                <div class="alert alert-warning mb-3">
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                                        <div>
-                                                            <strong>No patients found!</strong> 
-                                                            Redirecting to patient registration in <span id="countdown">5</span> seconds...
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex justify-content-center gap-2">
-                                                    <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
-                                                        <i class="fas fa-user-plus me-2"></i>Register New Patient Now
-                                                    </a>
-                                                    <a href="{{ route('patients.index') }}" class="btn btn-secondary btn-lg">
-                                                        <i class="fas fa-arrow-left me-2"></i>Back to All Patients
-                                                    </a>
-                                                </div>
-                                            @else
-                                                <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
-                                                    <i class="fas fa-user-plus me-2"></i>Register First Patient
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endif
+                            @foreach($patients as $patient)
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">#{{ $patient->id }}</strong>
+                                </td>
+                                <td>
+                                    <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
+                                </td>
+                                <td>{{ $patient->date_of_birth->format('M d, Y') }}</td>
+                                <td>
+                                    <span class="badge bg-info text-white">{{ $patient->date_of_birth->age }} years</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ $patient->gender == 'male' ? 'primary' : ($patient->gender == 'female' ? 'danger' : 'secondary') }}">
+                                        <i class="fas fa-{{ $patient->gender == 'male' ? 'mars' : ($patient->gender == 'female' ? 'venus' : 'genderless') }} me-1"></i>
+                                        {{ ucfirst($patient->gender) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <i class="fas fa-phone text-muted me-1"></i>{{ $patient->phone }}
+                                </td>
+                                <td>
+                                    @if($patient->email)
+                                        <i class="fas fa-envelope text-muted me-1"></i>
+                                        <small>{{ $patient->email }}</small>
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <!-- View Button -->
+                                        <a href="{{ route('patients.show', $patient->id) }}" 
+                                           class="btn btn-info btn-sm px-2" 
+                                           title="View Patient Details"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-eye fa-fw"></i>
+                                        </a>
+                                        
+                                        <!-- Edit Button -->
+                                        <a href="{{ route('patients.edit', $patient->id) }}" 
+                                           class="btn btn-warning btn-sm px-2" 
+                                           title="Edit Patient"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit fa-fw"></i>
+                                        </a>
+                                        
+                                        <!-- Delete Button -->
+                                        <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-danger btn-sm px-2" 
+                                                    title="Delete Patient"
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="return confirm('Are you sure you want to delete patient #{{ $patient->id }}? This action cannot be undone.')">
+                                                <i class="fas fa-trash fa-fw"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Search Help Text -->
-                @if($patients->count() > 0 && (!isset($search) || !$search))
+                @if(!isset($search) || !$search)
                     <div class="mt-3 text-center">
                         <small class="text-muted">
                             <i class="fas fa-search me-1"></i>
                             Use the search box above to find patients by ID, first name, or last name
                         </small>
                     </div>
+                @endif
+
+                @else
+                    <!-- No patients found - Immediate redirect -->
+                    @if(isset($search) && $search)
+                        <!-- Search with no results - Immediate redirect -->
+                        <div class="text-center py-5">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-search fa-2x mb-3"></i>
+                                <h4>No patients found for "{{ $search }}"</h4>
+                                <p class="mb-3">Redirecting to patient registration...</p>
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <script>
+                            // Immediate redirect to patient registration
+                            window.location.href = "{{ route('patients.create') }}?search={{ urlencode($search) }}";
+                        </script>
+                    
+                    @else
+                        <!-- No patients at all (not a search) -->
+                        <div class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
+                                <h4>No Patients Found</h4>
+                                <p class="mb-4">Get started by registering your first patient.</p>
+                                <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Register First Patient
+                                </a>
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -218,10 +206,6 @@
     }
     .auto-dismiss-alert {
         transition: opacity 0.5s ease-in-out;
-    }
-    .countdown-warning {
-        background: linear-gradient(45deg, #fff3cd, #ffeaa7);
-        border-left: 4px solid #ffc107;
     }
 </style>
 @endpush
@@ -255,39 +239,8 @@
                         }
                     }, 500);
                 }
-            }, 5000); // 5 seconds
+            }, 5000);
         });
-
-        // Auto-redirect functionality for empty search results
-        const countdownElement = document.getElementById('countdown');
-        if (countdownElement) {
-            let seconds = 5;
-            const countdownInterval = setInterval(function() {
-                seconds--;
-                countdownElement.textContent = seconds;
-                
-                if (seconds <= 0) {
-                    clearInterval(countdownInterval);
-                    window.location.href = "{{ route('patients.create') }}";
-                }
-            }, 1000);
-            
-            // Allow user to cancel auto-redirect by clicking anywhere
-            document.addEventListener('click', function() {
-                clearInterval(countdownInterval);
-                countdownElement.textContent = 'Cancelled';
-                countdownElement.style.color = '#dc3545';
-                countdownElement.style.fontWeight = 'bold';
-            });
-            
-            // Also cancel on keypress
-            document.addEventListener('keydown', function() {
-                clearInterval(countdownInterval);
-                countdownElement.textContent = 'Cancelled';
-                countdownElement.style.color = '#dc3545';
-                countdownElement.style.fontWeight = 'bold';
-            });
-        }
 
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
