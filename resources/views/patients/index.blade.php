@@ -155,14 +155,33 @@
                                             </h5>
                                             <p class="mb-3">
                                                 @if(isset($search) && $search)
-                                                    Try searching with different terms or 
-                                                    <a href="{{ route('patients.index') }}">view all patients</a>
+                                                    No patients match your search criteria.
                                                 @else
                                                     Get started by registering your first patient.
                                                 @endif
                                             </p>
-                                            @if(!isset($search) || !$search)
-                                                <a href="{{ route('patients.create') }}" class="btn btn-primary">
+                                            
+                                            <!-- Auto-redirect section -->
+                                            @if(isset($search) && $search)
+                                                <div class="alert alert-warning mb-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                        <div>
+                                                            <strong>No patients found!</strong> 
+                                                            Redirecting to patient registration in <span id="countdown">5</span> seconds...
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
+                                                        <i class="fas fa-user-plus me-2"></i>Register New Patient Now
+                                                    </a>
+                                                    <a href="{{ route('patients.index') }}" class="btn btn-secondary btn-lg">
+                                                        <i class="fas fa-arrow-left me-2"></i>Back to All Patients
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
                                                     <i class="fas fa-user-plus me-2"></i>Register First Patient
                                                 </a>
                                             @endif
@@ -200,6 +219,10 @@
     .auto-dismiss-alert {
         transition: opacity 0.5s ease-in-out;
     }
+    .countdown-warning {
+        background: linear-gradient(45deg, #fff3cd, #ffeaa7);
+        border-left: 4px solid #ffc107;
+    }
 </style>
 @endpush
 
@@ -234,6 +257,37 @@
                 }
             }, 5000); // 5 seconds
         });
+
+        // Auto-redirect functionality for empty search results
+        const countdownElement = document.getElementById('countdown');
+        if (countdownElement) {
+            let seconds = 5;
+            const countdownInterval = setInterval(function() {
+                seconds--;
+                countdownElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    window.location.href = "{{ route('patients.create') }}";
+                }
+            }, 1000);
+            
+            // Allow user to cancel auto-redirect by clicking anywhere
+            document.addEventListener('click', function() {
+                clearInterval(countdownInterval);
+                countdownElement.textContent = 'Cancelled';
+                countdownElement.style.color = '#dc3545';
+                countdownElement.style.fontWeight = 'bold';
+            });
+            
+            // Also cancel on keypress
+            document.addEventListener('keydown', function() {
+                clearInterval(countdownInterval);
+                countdownElement.textContent = 'Cancelled';
+                countdownElement.style.color = '#dc3545';
+                countdownElement.style.fontWeight = 'bold';
+            });
+        }
 
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
