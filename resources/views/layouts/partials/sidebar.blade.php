@@ -11,48 +11,46 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Dashboard -->
-    <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('dashboard') }}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-        </a>
-    </li>
+    @inject('menuService', 'App\Services\MenuService')
+    @php
+        $currentRoute = request()->route()->getName();
+        $menuItems = $menuService->getMenuItems();
+    @endphp
 
-    <!-- Divider -->
-    <hr class="sidebar-divider">
+    @foreach($menuItems as $menuItem)
+        @if($menuItem->children->count() > 0)
+            <!-- Nav Item - Collapsible Menu -->
+            <li class="nav-item {{ $menuService->isActive($menuItem, $currentRoute) ? 'active' : '' }}">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse{{ $menuItem->id }}" 
+                   aria-expanded="true" aria-controls="collapse{{ $menuItem->id }}">
+                    <i class="{{ $menuItem->icon }}"></i>
+                    <span>{{ $menuItem->name }}</span>
+                </a>
+                <div id="collapse{{ $menuItem->id }}" class="collapse" aria-labelledby="heading{{ $menuItem->id }}" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        @foreach($menuItem->children as $child)
+                            <a class="collapse-item {{ $currentRoute == $child->route ? 'active' : '' }}" 
+                               href="{{ $child->route ? route($child->route) : '#' }}">
+                                <i class="{{ $child->icon }} me-2"></i>
+                                {{ $child->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </li>
+        @else
+            <!-- Nav Item - Single Menu -->
+            <li class="nav-item {{ $currentRoute == $menuItem->route ? 'active' : '' }}">
+                <a class="nav-link" href="{{ $menuItem->route ? route($menuItem->route) : '#' }}">
+                    <i class="{{ $menuItem->icon }}"></i>
+                    <span>{{ $menuItem->name }}</span>
+                </a>
+            </li>
+        @endif
 
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Patient Management
-    </div>
-
-    <!-- Nav Item - Patients -->
-    <li class="nav-item {{ request()->routeIs('patients.*') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('patients.index') }}">
-            <i class="fas fa-fw fa-user-injured"></i>
-            <span>Patients</span>
-        </a>
-    </li>
-
-    <!-- Nav Item - Diagnosis -->
-    <li class="nav-item {{ request()->routeIs('diagnosis.*') ? 'active' : '' }}">
-        <a class="nav-link" href="#">
-            <i class="fas fa-fw fa-diagnoses"></i>
-            <span>Diagnosis</span>
-        </a>
-    </li>
-
-    <!-- Nav Item - Reports -->
-    <li class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-        <a class="nav-link" href="#">
-            <i class="fas fa-fw fa-chart-bar"></i>
-            <span>Reports</span>
-        </a>
-    </li>
-
-    <!-- Divider -->
-    <hr class="sidebar-divider d-none d-md-block">
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+    @endforeach
 
     <!-- Sidebar Toggler (Sidebar) -->
     <div class="text-center d-none d-md-inline">

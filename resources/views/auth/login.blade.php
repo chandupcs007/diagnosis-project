@@ -164,6 +164,15 @@
                                 <div class="text-center">
                                     <a href="#" class="text-decoration-none">Forgot your password?</a>
                                 </div>
+
+                                   <!-- Registration Link -->
+                                <div class="text-center border-top pt-3">
+                                    <p class="mb-2">Don't have an account?</p>
+                                    <a href="{{ route('register') }}" class="register-link">
+                                        <i class="fas fa-user-plus me-1"></i>Create New Account
+                                    </a>
+                                </div>
+                                
                             </form>
 
                           

@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\DiagnosisController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,6 +32,35 @@ Route::post('/login', function () {
     ]);
 });
 
+// Registration Routes
+Route::get('/register', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+    return view('auth.register');
+})->name('register');
+
+Route::post('/register', function () {
+    $credentials = request()->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+
+    // Create user
+    $user = \App\Models\User::create([
+        'name' => request('name'),
+        'email' => request('email'),
+        'password' => bcrypt(request('password')),
+    ]);
+
+    // Log in the user
+    Auth::login($user);
+
+    return redirect()->route('dashboard')
+        ->with('success', 'Account created successfully! Welcome to ' . config('diagnosis.name'));
+});
+
 // Protected routes (require authentication)
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
@@ -38,13 +70,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Patient Routes
-    Route::get('/patients', [PatientController::class, 'index'])->name('patients.index');
-    Route::get('/patients/create', [PatientController::class, 'create'])->name('patients.create');
-    Route::post('/patients', [PatientController::class, 'store'])->name('patients.store');
-    Route::get('/patients/{id}', [PatientController::class, 'show'])->name('patients.show');
-    Route::get('/patients/{id}/edit', [PatientController::class, 'edit'])->name('patients.edit');
-    Route::put('/patients/{id}', [PatientController::class, 'update'])->name('patients.update');
-    Route::delete('/patients/{id}', [PatientController::class, 'destroy'])->name('patients.destroy');
+    Route::resource('patients', PatientController::class);
+
+    // Diagnosis Routes
+    Route::get('/diagnosis', [DiagnosisController::class, 'index'])->name('diagnosis.index');
+    Route::get('/diagnosis/create', [DiagnosisController::class, 'create'])->name('diagnosis.create');
+    Route::post('/diagnosis', [DiagnosisController::class, 'store'])->name('diagnosis.store');
+
+    // Report Routes
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
 
     // Logout route
     Route::post('/logout', function () {

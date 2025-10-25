@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'name' => 'Diagnosis Pro',
+    'name' => 'Small',
     'version' => '1.0.0',
     'description' => 'Advanced Medical Diagnosis Platform',
     'company' => 'Medical Solutions Inc.',
