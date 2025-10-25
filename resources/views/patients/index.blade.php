@@ -108,38 +108,47 @@
                                         <span class="text-muted">N/A</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <!-- View Button -->
-                                        <a href="{{ route('patients.show', $patient->id) }}" 
-                                           class="btn btn-info btn-sm px-2" 
-                                           title="View Patient Details"
-                                           data-bs-toggle="tooltip">
-                                            <i class="fas fa-eye fa-fw"></i>
-                                        </a>
-                                        
-                                        <!-- Edit Button -->
-                                        <a href="{{ route('patients.edit', $patient->id) }}" 
-                                           class="btn btn-warning btn-sm px-2" 
-                                           title="Edit Patient"
-                                           data-bs-toggle="tooltip">
-                                            <i class="fas fa-edit fa-fw"></i>
-                                        </a>
-                                        
-                                        <!-- Delete Button -->
-                                        <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="btn btn-danger btn-sm px-2" 
-                                                    title="Delete Patient"
-                                                    data-bs-toggle="tooltip"
-                                                    onclick="return confirm('Are you sure you want to delete patient #{{ $patient->id }}? This action cannot be undone.')">
-                                                <i class="fas fa-trash fa-fw"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
+                               <!-- In the actions column, add this after the existing buttons -->
+<td>
+    <div class="d-flex justify-content-center gap-1">
+        <!-- View Button -->
+        <a href="{{ route('patients.show', $patient->id) }}" 
+           class="btn btn-info btn-sm px-2" 
+           title="View Patient Details"
+           data-bs-toggle="tooltip">
+            <i class="fas fa-eye fa-fw"></i>
+        </a>
+        
+        <!-- Create Visit Button -->
+        <a href="{{ route('visits.create', $patient->id) }}" 
+           class="btn btn-success btn-sm px-2" 
+           title="Create New Visit"
+           data-bs-toggle="tooltip">
+            <i class="fas fa-calendar-plus fa-fw"></i>
+        </a>
+        
+        <!-- Edit Button -->
+        <a href="{{ route('patients.edit', $patient->id) }}" 
+           class="btn btn-warning btn-sm px-2" 
+           title="Edit Patient"
+           data-bs-toggle="tooltip">
+            <i class="fas fa-edit fa-fw"></i>
+        </a>
+        
+        <!-- Delete Button -->
+        <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
+            @csrf
+            @method('DELETE')
+            <button type="submit" 
+                    class="btn btn-danger btn-sm px-2" 
+                    title="Delete Patient"
+                    data-bs-toggle="tooltip"
+                    onclick="return confirm('Are you sure you want to delete patient #{{ $patient->id }}? This action cannot be undone.')">
+                <i class="fas fa-trash fa-fw"></i>
+            </button>
+        </form>
+    </div>
+</td>
                             </tr>
                             @endforeach
                         </tbody>
