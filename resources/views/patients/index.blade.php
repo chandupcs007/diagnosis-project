@@ -14,14 +14,51 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">Patient List</h6>
+                
+                <!-- Search Form -->
+                <form method="GET" action="{{ route('patients.index') }}" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control bg-light border-0 small" 
+                               placeholder="Search by ID or Name..." 
+                               value="{{ $search ?? '' }}"
+                               aria-label="Search" aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="card-body">
+                <!-- Success Alert with Auto-dismiss -->
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-success alert-dismissible fade show auto-dismiss-alert" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>{{ session('success') }}</div>
+                        </div>
+                        <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
+                    </div>
+                @endif
+
+                <!-- Search Results Alert with Auto-dismiss -->
+                @if(isset($search) && $search)
+                    <div class="alert alert-info alert-dismissible fade show auto-dismiss-alert" role="alert">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-search me-2"></i>
+                                <div>Showing results for: "<strong>{{ $search }}</strong>"</div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <a href="{{ route('patients.index') }}" class="btn btn-sm btn-outline-info me-2">
+                                    <i class="fas fa-times me-1"></i> Clear Search
+                                </a>
+                                <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
+                            </div>
+                        </div>
                     </div>
                 @endif
 
@@ -29,7 +66,7 @@
                     <table class="table table-bordered table-hover" id="patientsTable" width="100%" cellspacing="0">
                         <thead class="thead-light">
                             <tr>
-                                <th>ID</th>
+                                <th width="80px">ID</th>
                                 <th>Name</th>
                                 <th>Date of Birth</th>
                                 <th>Age</th>
@@ -43,12 +80,16 @@
                             @if($patients->count() > 0)
                                 @foreach($patients as $patient)
                                 <tr>
-                                    <td><strong>#{{ $patient->id }}</strong></td>
+                                    <td>
+                                        <strong class="text-primary">#{{ $patient->id }}</strong>
+                                    </td>
                                     <td>
                                         <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
                                     </td>
                                     <td>{{ $patient->date_of_birth->format('M d, Y') }}</td>
-                                    <td><span class="badge bg-info text-white">{{ $patient->date_of_birth->age }} years</span></td>
+                                    <td>
+                                        <span class="badge bg-info text-white">{{ $patient->date_of_birth->age }} years</span>
+                                    </td>
                                     <td>
                                         <span class="badge bg-{{ $patient->gender == 'male' ? 'primary' : ($patient->gender == 'female' ? 'danger' : 'secondary') }}">
                                             <i class="fas fa-{{ $patient->gender == 'male' ? 'mars' : ($patient->gender == 'female' ? 'venus' : 'genderless') }} me-1"></i>
@@ -60,7 +101,8 @@
                                     </td>
                                     <td>
                                         @if($patient->email)
-                                            <i class="fas fa-envelope text-muted me-1"></i>{{ $patient->email }}
+                                            <i class="fas fa-envelope text-muted me-1"></i>
+                                            <small>{{ $patient->email }}</small>
                                         @else
                                             <span class="text-muted">N/A</span>
                                         @endif
@@ -104,11 +146,26 @@
                                     <td colspan="8" class="text-center py-5">
                                         <div class="text-muted">
                                             <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
-                                            <h5>No Patients Found</h5>
-                                            <p class="mb-3">Get started by registering your first patient.</p>
-                                            <a href="{{ route('patients.create') }}" class="btn btn-primary">
-                                                <i class="fas fa-user-plus me-2"></i>Register First Patient
-                                            </a>
+                                            <h5>
+                                                @if(isset($search) && $search)
+                                                    No patients found for "{{ $search }}"
+                                                @else
+                                                    No Patients Found
+                                                @endif
+                                            </h5>
+                                            <p class="mb-3">
+                                                @if(isset($search) && $search)
+                                                    Try searching with different terms or 
+                                                    <a href="{{ route('patients.index') }}">view all patients</a>
+                                                @else
+                                                    Get started by registering your first patient.
+                                                @endif
+                                            </p>
+                                            @if(!isset($search) || !$search)
+                                                <a href="{{ route('patients.create') }}" class="btn btn-primary">
+                                                    <i class="fas fa-user-plus me-2"></i>Register First Patient
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -116,6 +173,16 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Search Help Text -->
+                @if($patients->count() > 0 && (!isset($search) || !$search))
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-search me-1"></i>
+                            Use the search box above to find patients by ID, first name, or last name
+                        </small>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -124,26 +191,65 @@
 
 @push('styles')
 <style>
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-    }
     .table-hover tbody tr:hover {
         background-color: rgba(0, 0, 0, 0.075);
+    }
+    .navbar-search {
+        width: 300px;
+    }
+    .auto-dismiss-alert {
+        transition: opacity 0.5s ease-in-out;
     }
 </style>
 @endpush
 
 @push('scripts')
-<!-- Bootstrap Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Initialize tooltips
+    // Simple alert close function
+    function closeAlert(button) {
+        const alert = button.closest('.alert');
+        if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 500);
+        }
+    }
+
+    // Auto-dismiss alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.auto-dismiss-alert');
+        
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                if (alert.parentNode) {
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 500);
+                }
+            }, 5000); // 5 seconds
+        });
+
+        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+        
+        // Clear search when pressing Escape in search field
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.location.href = "{{ route('patients.index') }}";
+                }
+            });
+        }
     });
 </script>
 @endpush

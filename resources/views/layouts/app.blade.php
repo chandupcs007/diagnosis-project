@@ -100,6 +100,22 @@
             $('.sidebar .collapse').not(this).collapse('hide');
         });
     });
+<!-- Add this script section to your layout file -->
+ 
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-dismiss all Bootstrap alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+        alerts.forEach(alert => {
+            const dismissTime = alert.getAttribute('data-dismiss-time') || 5000;
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, dismissTime);
+        });
+    });
 </script>
 
 @stack('scripts')

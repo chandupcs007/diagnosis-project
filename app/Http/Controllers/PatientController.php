@@ -11,13 +11,37 @@ class PatientController extends Controller
     /**
      * Display a listing of the patients.
      */
-    public function index()
-    {
-        // Get all patients from the persons table
-        $patients = Person::orderBy('created_at', 'desc')->get();
-        
-        return view('patients.index', compact('patients'));
-    }
+public function index(Request $request)
+{
+    $search = $request->input('search');
+    $searchType = $request->input('search_type', 'all'); // all, id, name
+    
+    $patients = Person::when($search, function ($query, $search) use ($searchType) {
+        return $query->where(function ($q) use ($search, $searchType) {
+            switch ($searchType) {
+                case 'id':
+                    $q->where('id', 'LIKE', "%{$search}%");
+                    break;
+                case 'name':
+                    $q->where('first_name', 'LIKE', "%{$search}%")
+                      ->orWhere('last_name', 'LIKE', "%{$search}%")
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
+                    break;
+                default: // all
+                    $q->where('id', 'LIKE', "%{$search}%")
+                      ->orWhere('first_name', 'LIKE', "%{$search}%")
+                      ->orWhere('last_name', 'LIKE', "%{$search}%")
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"])
+                      ->orWhere('phone', 'LIKE', "%{$search}%")
+                      ->orWhere('email', 'LIKE', "%{$search}%");
+            }
+        });
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+    
+    return view('patients.index', compact('patients', 'search', 'searchType'));
+}
 
     /**
      * Show the form for creating a new patient.
