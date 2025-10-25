@@ -1,7 +1,8 @@
 <!-- Sidebar -->
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<div class="navbar-nav bg-gradient-primary sidebar sidebar-dark" id="sidebar">
+
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('dashboard') }}">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center mb-4" href="{{ route('dashboard') }}">
         <div class="sidebar-brand-icon rotate-n-15">
             <i class="fas fa-stethoscope"></i>
         </div>
@@ -17,44 +18,25 @@
         $menuItems = $menuService->getMenuItems();
     @endphp
 
-    @foreach($menuItems as $menuItem)
-        @if($menuItem->children->count() > 0)
-            <!-- Nav Item - Collapsible Menu -->
-            <li class="nav-item {{ $menuService->isActive($menuItem, $currentRoute) ? 'active' : '' }}">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapse{{ $menuItem->id }}" 
-                   aria-expanded="true" aria-controls="collapse{{ $menuItem->id }}">
-                    <i class="{{ $menuItem->icon }}"></i>
-                    <span>{{ $menuItem->name }}</span>
-                </a>
-                <div id="collapse{{ $menuItem->id }}" class="collapse" aria-labelledby="heading{{ $menuItem->id }}" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        @foreach($menuItem->children as $child)
-                            <a class="collapse-item {{ $currentRoute == $child->route ? 'active' : '' }}" 
-                               href="{{ $child->route ? route($child->route) : '#' }}">
-                                <i class="{{ $child->icon }} me-2"></i>
-                                {{ $child->name }}
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
-            </li>
-        @else
-            <!-- Nav Item - Single Menu -->
-            <li class="nav-item {{ $currentRoute == $menuItem->route ? 'active' : '' }}">
-                <a class="nav-link" href="{{ $menuItem->route ? route($menuItem->route) : '#' }}">
-                    <i class="{{ $menuItem->icon }}"></i>
+    <!-- Nav Items -->
+    <ul class="nav flex-column">
+        @foreach($menuItems as $menuItem)
+            <li class="nav-item">
+                <a class="nav-link {{ $currentRoute == $menuItem->route ? 'active' : '' }}" 
+                   href="{{ $menuItem->route ? route($menuItem->route) : '#' }}">
+                    <i class="{{ $menuItem->icon }} me-2"></i>
                     <span>{{ $menuItem->name }}</span>
                 </a>
             </li>
-        @endif
+        @endforeach
+    </ul>
 
-        <!-- Divider -->
-        <hr class="sidebar-divider">
-    @endforeach
-
-    <!-- Sidebar Toggler (Sidebar) -->
-    <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    <!-- Sidebar Toggler -->
+    <div class="text-center d-none d-md-inline mt-4">
+        <button class="rounded-circle border-0" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
     </div>
-</ul>
+
+</div>
 <!-- End of Sidebar -->

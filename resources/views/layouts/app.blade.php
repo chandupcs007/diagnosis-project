@@ -62,15 +62,46 @@
     </a>
 
     <!-- Bootstrap core JavaScript-->
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    
-    <!-- Core plugin JavaScript-->
-    <script src="{{ asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-    
-    <!-- Custom scripts for all pages-->
-    <script src="{{ asset('vendor/sb-admin-2/js/sb-admin-2.min.js') }}"></script>
-    
-    @stack('scripts')
+<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="{{ asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="{{ asset('vendor/sb-admin-2/js/sb-admin-2.min.js') }}"></script>
+
+<script>
+    // Prevent auto-toggle and handle sidebar manually
+    $(document).ready(function() {
+        // Initialize SB Admin 2
+        if (typeof $.fn.sbAdmin2 !== 'undefined') {
+            $('body').sbAdmin2();
+        }
+
+        // Manual sidebar toggle handling
+        $('#sidebarToggle').on('click', function(e) {
+            e.preventDefault();
+            $('body').toggleClass('sidebar-toggled');
+            $('.sidebar').toggleClass('toggled');
+            
+            if ($('.sidebar').hasClass('toggled')) {
+                $('.sidebar .collapse').collapse('hide');
+            }
+        });
+
+        // Prevent auto-collapse on page load
+        $('.sidebar .collapse').collapse({
+            toggle: false
+        });
+
+        // Close other collapses when one is opened
+        $('.sidebar .collapse').on('show.bs.collapse', function () {
+            $('.sidebar .collapse').not(this).collapse('hide');
+        });
+    });
+</script>
+
+@stack('scripts')
 </body>
 </html>
