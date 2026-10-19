@@ -101,6 +101,7 @@ return [
     ],
 
     'sample_types' => [
+        'Whole Blood',
         'Blood',
         'Serum',
         'Plasma',
@@ -113,6 +114,7 @@ return [
     ],
 
     'sample_type_codes' => [
+        'Whole Blood' => 'WB',
         'Blood' => 'BLD',
         'Serum' => 'SRM',
         'Plasma' => 'PLS',

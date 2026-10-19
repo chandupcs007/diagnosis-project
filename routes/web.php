@@ -156,11 +156,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/master/services/next-hospital-code', [MasterController::class, 'nextHospitalServiceCode'])->name('master.services.next-hospital-code');
     Route::get('/master/services/next-laboratory-code', [MasterController::class, 'nextLaboratoryServiceCode'])->name('master.services.next-laboratory-code');
     Route::post('/master/services', [MasterController::class, 'storeService'])->name('master.services.store');
+    Route::get('/master/services/hospital/search', [MasterController::class, 'searchHospitalServices'])->name('master.services.hospital.search');
+    Route::get('/master/services/hospital/{code}/logs', [MasterController::class, 'hospitalServiceLogs'])->name('master.services.hospital.logs');
+    Route::get('/master/services/hospital/{code}', [MasterController::class, 'showHospitalService'])->name('master.services.hospital.show');
+    Route::put('/master/services/hospital/{code}', [MasterController::class, 'updateHospitalService'])->name('master.services.hospital.update');
+    Route::get('/master/services/laboratory/search', [MasterController::class, 'searchLaboratoryServices'])->name('master.services.laboratory.search');
+    Route::get('/master/services/laboratory/{code}/logs', [MasterController::class, 'laboratoryServiceLogs'])->name('master.services.laboratory.logs');
+    Route::get('/master/services/laboratory/{code}', [MasterController::class, 'showLaboratoryService'])->name('master.services.laboratory.show');
+    Route::put('/master/services/laboratory/{code}', [MasterController::class, 'updateLaboratoryService'])->name('master.services.laboratory.update');
     Route::get('/master/hospital', [MasterController::class, 'hospitalDetails'])->name('master.hospital.edit');
     Route::put('/master/hospital', [MasterController::class, 'updateHospital'])->name('master.hospital.update');
     Route::get('/master/doctors/create', [MasterController::class, 'createDoctor'])->name('master.doctors.create');
     Route::post('/master/doctors', [MasterController::class, 'storeDoctor'])->name('master.doctors.store');
     Route::get('/master/lis-mapping', [MasterController::class, 'lisMapping'])->name('master.lis-mapping.index');
+    Route::get('/master/lis-mapping/analyzers', [MasterController::class, 'lisAnalyzerMapping'])->name('master.lis-mapping.analyzers');
+    Route::get('/master/lis-mapping/analyzers/{analyzerId}/his-mappings', [MasterController::class, 'analyzerHisMappings'])->name('master.lis-mapping.analyzers.his-mappings');
+    Route::post('/master/lis-mapping/analyzers', [MasterController::class, 'storeLisAnalyzer'])->name('master.lis-mapping.analyzers.store');
+    Route::get('/master/lis-mapping/analyzer-assay-codes', [MasterController::class, 'lisAnalyzerAssayMapping'])->name('master.lis-mapping.analyzer-assay-codes');
+    Route::post('/master/lis-mapping/analyzer-assay-codes', [MasterController::class, 'storeLisAnalyzerAssayCode'])->name('master.lis-mapping.analyzer-assay-codes.store');
+    Route::get('/master/lis-mapping/assay-his-codes/analyzer-assays', [MasterController::class, 'lisAssayCodesForAnalyzer'])->name('master.lis-mapping.assay-his-codes.analyzer-assays');
+    Route::get('/master/lis-mapping/assay-his-codes', [MasterController::class, 'lisAssayHisMapping'])->name('master.lis-mapping.assay-his-codes');
+    Route::post('/master/lis-mapping/assay-his-codes', [MasterController::class, 'storeLisAssayHisMapping'])->name('master.lis-mapping.assay-his-codes.store');
     Route::get('/master/phpmyadmin', [MasterController::class, 'phpMyAdmin'])->name('master.phpmyadmin');
 
 

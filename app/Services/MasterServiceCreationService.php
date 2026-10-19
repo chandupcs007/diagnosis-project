@@ -6,6 +6,8 @@ use App\Models\BillingMaster;
 use App\Models\HospitalService;
 use App\Models\HospitalServiceCategory;
 use App\Models\LabTest;
+use App\Models\LabTestParam;
+use App\Models\LabTestProfileChild;
 use App\Models\LegacyLabTest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -84,16 +86,40 @@ class MasterServiceCreationService
         });
     }
 
+    public function selectableLabTestsForProfiles()
+    {
+        $profileCodes = LabTestParam::query()
+            ->where('is_profile', 1)
+            ->pluck('item_code');
+
+        return LegacyLabTest::query()
+            ->whereIn('group_id', array_keys(config('diagnosis.lab_departments', [])))
+            ->whereNotIn('id', $profileCodes)
+            ->orderBy('group_id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'group_id']);
+    }
+
     public function createLaboratoryService(
         string $department,
         string $serviceName,
-        float $unitPrice
+        float $unitPrice,
+        bool $isProfile = false,
+        array $childItemCodes = [],
+        string $sampleType = 'Serum'
     ): array {
-        return DB::transaction(function () use ($department, $serviceName, $unitPrice) {
+        return DB::transaction(function () use ($department, $serviceName, $unitPrice, $isProfile, $childItemCodes, $sampleType) {
             $itemCode = $this->nextLaboratoryItemCode($department);
             $nextNr = ((int) LegacyLabTest::query()->max('nr')) + 1;
             $userName = Auth::user()?->name ?? 'system';
             $now = now();
+
+            $childPayload = '';
+            if ($isProfile && $childItemCodes !== []) {
+                $childPayload = collect($childItemCodes)
+                    ->map(fn (string $code) => $code . '=1')
+                    ->implode('&');
+            }
 
             LegacyLabTest::create([
                 'nr' => $nextNr,
@@ -102,7 +128,10 @@ class MasterServiceCreationService
                 'id' => $itemCode,
                 'msr_unit' => '',
                 'normal_range' => '',
+                'sample' => $sampleType,
                 'isVisible' => true,
+                'child' => $childPayload ?: null,
+                'isList' => $isProfile ? 1 : 0,
                 'ListTest' => '',
                 'spaw' => '0',
                 'sort_nr' => 0,
@@ -120,6 +149,21 @@ class MasterServiceCreationService
                 'modality' => '0',
             ]);
 
+            LabTestParam::create([
+                'item_code' => $itemCode,
+                'is_profile' => $isProfile ? 1 : 0,
+            ]);
+
+            if ($isProfile) {
+                foreach (array_values($childItemCodes) as $index => $childCode) {
+                    LabTestProfileChild::create([
+                        'parent_item_code' => $itemCode,
+                        'child_item_code' => $childCode,
+                        'sort_nr' => $index + 1,
+                    ]);
+                }
+            }
+
             $deptNr = (int) config("diagnosis.lab_billing_dept_nr.{$department}", 22);
 
             $billing = BillingMaster::create(
@@ -132,7 +176,7 @@ class MasterServiceCreationService
                 )
             );
 
-            $this->syncModernLabTest($department, $serviceName, $itemCode, $unitPrice);
+            $this->syncModernLabTest($department, $serviceName, $itemCode, $unitPrice, $sampleType);
 
             $modernCode = strtoupper(str_replace('_', '', $itemCode));
             $labTestId = LabTest::query()->where('code', $modernCode)->value('id');
@@ -179,7 +223,7 @@ class MasterServiceCreationService
 
         return [
             'department' => $department,
-            'sample_type' => 'Serum',
+            'sample_type' => $legacy?->sample ?: 'Serum',
             'lab_test_id' => $labTestId,
         ];
     }
@@ -278,7 +322,8 @@ class MasterServiceCreationService
         string $department,
         string $serviceName,
         string $legacyItemCode,
-        float $unitPrice
+        float $unitPrice,
+        string $sampleType = 'Serum'
     ): void {
         if (!in_array($department, ['biochemistry', 'hematology', 'microbiology'], true)) {
             return;
@@ -291,7 +336,7 @@ class MasterServiceCreationService
             [
                 'name' => $serviceName,
                 'department' => $department,
-                'sample_type' => 'Serum',
+                'sample_type' => $sampleType,
                 'unit_price' => $unitPrice,
                 'is_active' => true,
             ]

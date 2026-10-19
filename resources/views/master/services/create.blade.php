@@ -9,6 +9,40 @@
 ])
 @endpush
 
+@push('styles')
+<style>
+    .profile-test-pane {
+        height: 220px;
+        overflow-y: auto;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        background: #fff;
+        font-size: 0.875rem;
+        line-height: 1.35;
+    }
+    .profile-test-pane .profile-test-item {
+        padding: 0.45rem 0.65rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f3f5;
+        user-select: none;
+    }
+    .profile-test-pane .profile-test-item:hover,
+    .profile-test-pane .profile-test-item:focus {
+        background: #e7f1ff;
+        outline: none;
+    }
+    .profile-test-pane .profile-test-item .code {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+    .profile-test-pane .profile-test-empty {
+        padding: 0.75rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+@endpush
+
 @section('content')
 @include('master.partials.nav')
 
@@ -130,7 +164,7 @@
                     <div class="form-group mb-3">
                         <label for="lab_service_name">Service / Test Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="lab_service_name"
-                               maxlength="250" placeholder="Enter test name"
+                               maxlength="250" placeholder="e.g. Lipid Profile"
                                value="{{ old('service_mode') === 'laboratory' ? old('service_name') : '' }}">
                     </div>
                 </div>
@@ -142,8 +176,54 @@
                                value="{{ old('service_mode') === 'laboratory' ? old('unit_price') : '' }}">
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="is_profile">Is Profile?</label>
+                        <select class="form-control" id="is_profile">
+                            <option value="0" {{ (string) old('is_profile', '0') === '0' ? 'selected' : '' }}>No (single test)</option>
+                            <option value="1" {{ (string) old('is_profile') === '1' ? 'selected' : '' }}>Yes (profile / panel)</option>
+                        </select>
+                        <small class="text-muted">Default 0 in <strong>lab_test_param</strong>.</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="sample_type">Sample Type <span class="text-danger">*</span></label>
+                        <select class="form-control" id="sample_type">
+                            @foreach(config('diagnosis.sample_types', []) as $sampleTypeOption)
+                                <option value="{{ $sampleTypeOption }}" @selected(old('sample_type', 'Serum') === $sampleTypeOption)>
+                                    {{ $sampleTypeOption }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Saved in <strong>lab_test.sample</strong>.</small>
+                    </div>
+                </div>
+                <div class="col-12" id="profile-tests-panel" style="display: none;">
+                    <div class="form-group mb-3">
+                        <label>Profile Tests <span class="text-danger">*</span></label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="profile_test_search" class="small text-muted mb-1">Available tests (from lab_test)</label>
+                                <input type="text" class="form-control form-control-sm mb-2" id="profile_test_search"
+                                       placeholder="Search by item code or description..." autocomplete="off">
+                                <div id="profile_available_list" class="profile-test-pane" role="listbox" aria-label="Available lab tests"></div>
+                                <small class="text-muted d-block mt-1">Double-click a test to add it to the profile.</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">Selected for this profile</label>
+                                <div id="profile_selected_list" class="profile-test-pane" role="listbox" aria-label="Selected profile tests"></div>
+                                <small class="text-muted d-block mt-1">Double-click to remove. Item code and description are saved in <strong>lab_test.child</strong>.</small>
+                                <div id="profile_child_hidden_fields"></div>
+                            </div>
+                        </div>
+                        @error('profile_child_codes')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
             </div>
-            <p class="text-muted small mb-0">Saved to <strong>lab_test</strong> and <strong>billing_master</strong>.</p>
+            <p class="text-muted small mb-0">Profile save creates one <strong>lab_test</strong> row (with <strong>child</strong>), one <strong>billing_master</strong> row, plus <strong>lab_test_param</strong> / <strong>lab_test_profile_child</strong>.</p>
         </div>
     </div>
 
@@ -155,58 +235,7 @@
     </div>
 </form>
 
-<div class="row">
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header"><h6 class="m-0 font-weight-bold">Recent Hospital Services</h6></div>
-            <div class="card-body p-0">
-                @if($recentHospitalServices->count())
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead><tr><th>Code</th><th>Category</th><th>Description</th></tr></thead>
-                            <tbody>
-                                @foreach($recentHospitalServices as $service)
-                                    <tr>
-                                        <td><strong>{{ $service->code }}</strong></td>
-                                        <td>{{ $service->category }}</td>
-                                        <td>{{ $service->description }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-3 text-muted">No hospital services yet.</div>
-                @endif
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header"><h6 class="m-0 font-weight-bold">Recent Laboratory Services</h6></div>
-            <div class="card-body p-0">
-                @if($recentLabServices->count())
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead><tr><th>Code</th><th>Department</th><th>Name</th></tr></thead>
-                            <tbody>
-                                @foreach($recentLabServices as $test)
-                                    <tr>
-                                        <td><strong>{{ $test->id }}</strong></td>
-                                        <td>{{ config('diagnosis.lab_departments.' . $test->group_id . '.name', $test->group_id) }}</td>
-                                        <td>{{ $test->name }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-3 text-muted">No laboratory services yet.</div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
+@include('master.services.partials.catalog-manager')
 @endsection
 
 @push('scripts')
@@ -230,6 +259,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const hospitalCodeUrl = @json(route('master.services.next-hospital-code'));
     const laboratoryCodeUrl = @json(route('master.services.next-laboratory-code'));
+    const allLabTests = @json($selectableLabTests->values());
+    const labDeptNames = @json(collect($labDepartments)->mapWithKeys(fn ($d, $k) => [$k => $d['name'] ?? $k]));
+    const oldProfileChildren = @json(old('profile_child_codes', []));
+    const isProfileSelect = document.getElementById('is_profile');
+    const sampleTypeSelect = document.getElementById('sample_type');
+    const profileTestsPanel = document.getElementById('profile-tests-panel');
+    const profileSearchInput = document.getElementById('profile_test_search');
+    const profileAvailableList = document.getElementById('profile_available_list');
+    const profileSelectedList = document.getElementById('profile_selected_list');
+    const profileHiddenFields = document.getElementById('profile_child_hidden_fields');
+    const labTestsById = Object.fromEntries(allLabTests.map(function (test) {
+        return [test.id, test];
+    }));
+    let selectedProfileTests = [];
 
     function setMode(mode) {
         modeInput.value = mode;
@@ -255,6 +298,9 @@ document.addEventListener('DOMContentLoaded', function () {
             labUnitPrice.removeAttribute('name');
             departmentSelect.removeAttribute('name');
             categorySelect.setAttribute('name', 'category_nr');
+            isProfileSelect.removeAttribute('name');
+            sampleTypeSelect.removeAttribute('name');
+            profileHiddenFields.innerHTML = '';
         } else {
             labServiceName.setAttribute('name', 'service_name');
             labUnitPrice.setAttribute('name', 'unit_price');
@@ -262,6 +308,155 @@ document.addEventListener('DOMContentLoaded', function () {
             hospitalUnitPrice.removeAttribute('name');
             categorySelect.removeAttribute('name');
             departmentSelect.setAttribute('name', 'department');
+            isProfileSelect.setAttribute('name', 'is_profile');
+            sampleTypeSelect.setAttribute('name', 'sample_type');
+            syncProfileHiddenFields();
+        }
+    }
+
+    function selectedProfileIds() {
+        return selectedProfileTests.map(function (test) {
+            return test.id;
+        });
+    }
+
+    function syncProfileHiddenFields() {
+        profileHiddenFields.innerHTML = '';
+        if (modeInput.value !== 'laboratory' || isProfileSelect.value !== '1') {
+            return;
+        }
+
+        selectedProfileTests.forEach(function (test) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'profile_child_codes[]';
+            input.value = test.id;
+            profileHiddenFields.appendChild(input);
+        });
+    }
+
+    function renderProfileAvailableList() {
+        const query = (profileSearchInput.value || '').trim().toLowerCase();
+        const selectedIds = new Set(selectedProfileIds());
+        profileAvailableList.innerHTML = '';
+
+        const matches = allLabTests.filter(function (test) {
+            if (selectedIds.has(test.id)) {
+                return false;
+            }
+            if (!query) {
+                return true;
+            }
+            const haystack = (test.id + ' ' + test.name + ' ' + (labDeptNames[test.group_id] || '')).toLowerCase();
+            return haystack.includes(query);
+        });
+
+        if (!matches.length) {
+            profileAvailableList.innerHTML = '<div class="profile-test-empty">No tests match your search.</div>';
+            return;
+        }
+
+        matches.forEach(function (test) {
+            const row = document.createElement('div');
+            row.className = 'profile-test-item';
+            row.tabIndex = 0;
+            row.dataset.testId = test.id;
+            row.innerHTML = '<span class="code">' + escapeHtml(test.id) + '</span> — ' +
+                escapeHtml(test.name) +
+                ' <span class="text-muted">(' + escapeHtml(labDeptNames[test.group_id] || test.group_id) + ')</span>';
+
+            row.addEventListener('dblclick', function () {
+                addProfileTest(test.id);
+            });
+            row.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    addProfileTest(test.id);
+                }
+            });
+
+            profileAvailableList.appendChild(row);
+        });
+    }
+
+    function renderProfileSelectedList() {
+        profileSelectedList.innerHTML = '';
+
+        if (!selectedProfileTests.length) {
+            profileSelectedList.innerHTML = '<div class="profile-test-empty">No tests selected yet.</div>';
+            syncProfileHiddenFields();
+            return;
+        }
+
+        selectedProfileTests.forEach(function (test) {
+            const row = document.createElement('div');
+            row.className = 'profile-test-item';
+            row.tabIndex = 0;
+            row.dataset.testId = test.id;
+            row.innerHTML = '<span class="code">' + escapeHtml(test.id) + '</span> — ' + escapeHtml(test.name);
+
+            row.addEventListener('dblclick', function () {
+                removeProfileTest(test.id);
+            });
+            row.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === 'Delete' || event.key === 'Backspace') {
+                    removeProfileTest(test.id);
+                }
+            });
+
+            profileSelectedList.appendChild(row);
+        });
+
+        syncProfileHiddenFields();
+    }
+
+    function addProfileTest(testId) {
+        if (selectedProfileIds().includes(testId) || !labTestsById[testId]) {
+            return;
+        }
+        selectedProfileTests.push(labTestsById[testId]);
+        renderProfileAvailableList();
+        renderProfileSelectedList();
+    }
+
+    function removeProfileTest(testId) {
+        selectedProfileTests = selectedProfileTests.filter(function (test) {
+            return test.id !== testId;
+        });
+        renderProfileAvailableList();
+        renderProfileSelectedList();
+    }
+
+    function restoreOldProfileSelection() {
+        selectedProfileTests = [];
+        oldProfileChildren.forEach(function (testId) {
+            if (labTestsById[testId]) {
+                selectedProfileTests.push(labTestsById[testId]);
+            }
+        });
+        renderProfileAvailableList();
+        renderProfileSelectedList();
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function toggleProfilePanel() {
+        const isProfile = isProfileSelect.value === '1';
+        profileTestsPanel.style.display = isProfile ? 'block' : 'none';
+        if (isProfile) {
+            if (!selectedProfileTests.length && oldProfileChildren.length) {
+                restoreOldProfileSelection();
+            } else {
+                renderProfileAvailableList();
+                renderProfileSelectedList();
+            }
+        } else {
+            profileHiddenFields.innerHTML = '';
         }
     }
 
@@ -315,6 +510,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     categorySelect.addEventListener('change', fetchHospitalCode);
     departmentSelect.addEventListener('change', fetchLaboratoryCode);
+    isProfileSelect.addEventListener('change', toggleProfilePanel);
+    profileSearchInput.addEventListener('input', renderProfileAvailableList);
+
+    form.addEventListener('submit', function (event) {
+        syncProfileHiddenFields();
+        if (modeInput.value === 'laboratory' && isProfileSelect.value === '1' && !selectedProfileTests.length) {
+            event.preventDefault();
+            alert('Please add at least one test to the profile (double-click from the left list).');
+        }
+    });
 
     const oldMode = @json(old('service_mode'));
     if (oldMode === 'hospital' || oldMode === 'laboratory') {
@@ -323,7 +528,12 @@ document.addEventListener('DOMContentLoaded', function () {
             fetchHospitalCode();
         } else {
             fetchLaboratoryCode();
+            toggleProfilePanel();
         }
+    }
+
+    if (oldMode === 'laboratory') {
+        toggleProfilePanel();
     }
 });
 </script>
