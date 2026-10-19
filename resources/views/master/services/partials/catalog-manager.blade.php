@@ -9,7 +9,9 @@
                     <input type="text" class="form-control" id="hospital_catalog_search" placeholder="Search by code, category, or description..." autocomplete="off">
                     <button type="button" class="btn btn-outline-primary" id="hospital_catalog_search_btn">Search</button>
                 </div>
-                <div id="hospital_catalog_results" class="catalog-results mb-3"></div>
+                <div id="hospital_catalog_results" class="catalog-results mb-3">
+                    <div class="p-2 text-muted small">Enter a search term and click Search.</div>
+                </div>
                 <form id="hospital_catalog_form" class="d-none border-top pt-3">
                     <div class="row g-2">
                         <div class="col-md-6">
@@ -87,7 +89,9 @@
                     <input type="text" class="form-control" id="lab_catalog_search" placeholder="Search by code, name, or department..." autocomplete="off">
                     <button type="button" class="btn btn-outline-success" id="lab_catalog_search_btn">Search</button>
                 </div>
-                <div id="lab_catalog_results" class="catalog-results mb-3"></div>
+                <div id="lab_catalog_results" class="catalog-results mb-3">
+                    <div class="p-2 text-muted small">Enter a search term and click Search.</div>
+                </div>
                 <form id="lab_catalog_form" class="d-none border-top pt-3">
                     <div class="row g-2">
                         <div class="col-md-6">
@@ -319,20 +323,34 @@ document.addEventListener('DOMContentLoaded', function () {
         el.classList.toggle('text-success', !isError);
     }
 
+    function showCatalogIdleMessage(container) {
+        container.innerHTML = '<div class="p-2 text-muted small">Enter a search term and click Search.</div>';
+    }
+
     async function searchHospital() {
+        const container = document.getElementById('hospital_catalog_results');
         const q = document.getElementById('hospital_catalog_search').value.trim();
+        if (!q) {
+            showCatalogIdleMessage(container);
+            return;
+        }
         const url = new URL(routes.hospitalSearch, window.location.origin);
         url.searchParams.set('q', q);
         const data = await jsonFetch(url);
-        renderResults(document.getElementById('hospital_catalog_results'), data.results || [], 'hospital');
+        renderResults(container, data.results || [], 'hospital');
     }
 
     async function searchLab() {
+        const container = document.getElementById('lab_catalog_results');
         const q = document.getElementById('lab_catalog_search').value.trim();
+        if (!q) {
+            showCatalogIdleMessage(container);
+            return;
+        }
         const url = new URL(routes.labSearch, window.location.origin);
         url.searchParams.set('q', q);
         const data = await jsonFetch(url);
-        renderResults(document.getElementById('lab_catalog_results'), data.results || [], 'laboratory');
+        renderResults(container, data.results || [], 'laboratory');
     }
 
     async function loadHospitalService(code) {
@@ -388,6 +406,18 @@ document.addEventListener('DOMContentLoaded', function () {
             alert(err.message || 'Laboratory search failed.');
         });
     });
+    document.getElementById('hospital_catalog_search').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('hospital_catalog_search_btn').click();
+        }
+    });
+    document.getElementById('lab_catalog_search').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById('lab_catalog_search_btn').click();
+        }
+    });
 
     document.getElementById('hospital_catalog_form').addEventListener('submit', async function (event) {
         event.preventDefault();
@@ -417,7 +447,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             showMessage(document.getElementById('hospital_catalog_success'), data.message || 'Updated.', false);
             showMessage(document.getElementById('hospital_catalog_error'), '', true);
-            searchHospital();
+            if (document.getElementById('hospital_catalog_search').value.trim()) {
+                searchHospital();
+            }
         } catch (err) {
             const msg = err.message || (err.errors ? Object.values(err.errors).flat().join(' ') : 'Update failed.');
             showMessage(document.getElementById('hospital_catalog_error'), msg, true);
@@ -447,7 +479,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             showMessage(document.getElementById('lab_catalog_success'), data.message || 'Updated.', false);
             showMessage(document.getElementById('lab_catalog_error'), '', true);
-            searchLab();
+            if (document.getElementById('lab_catalog_search').value.trim()) {
+                searchLab();
+            }
         } catch (err) {
             const msg = err.message || (err.errors ? Object.values(err.errors).flat().join(' ') : 'Update failed.');
             showMessage(document.getElementById('lab_catalog_error'), msg, true);
@@ -539,8 +573,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    searchHospital();
-    searchLab();
 });
 </script>
 @endpush

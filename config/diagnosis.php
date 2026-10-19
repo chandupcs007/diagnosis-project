@@ -153,4 +153,27 @@ return [
             'icon' => 'fas fa-file-medical-alt',
         ],
     ],
+
+    'pharmacy_sections' => [
+        'sales' => [
+            'label' => 'Sales',
+            'route' => 'pharmacy.index',
+            'icon' => 'fas fa-cash-register',
+        ],
+        'items' => [
+            'label' => 'Item Creation',
+            'route' => 'pharmacy.items.index',
+            'icon' => 'fas fa-pills',
+        ],
+        'po' => [
+            'label' => 'PO',
+            'route' => 'pharmacy.po.index',
+            'icon' => 'fas fa-file-invoice',
+        ],
+        'grn' => [
+            'label' => 'GRN',
+            'route' => 'pharmacy.grn.index',
+            'icon' => 'fas fa-truck-loading',
+        ],
+    ],
 ];

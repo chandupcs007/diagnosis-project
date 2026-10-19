@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\DiagnosisController;
+use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\RegisterController;
 use Illuminate\Support\Facades\Route;
@@ -139,7 +140,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/visits/{visit}/radiology-results', [VisitRecordController::class, 'storeRadiologyResult'])->name('visits.radiology-results.store');
     Route::post('/visits/{visit}/prescriptions', [VisitRecordController::class, 'storePrescription'])->name('visits.prescriptions.store');
 
-    // Diagnosis Routes
+    // Pharmacy Routes (default: Sales at /pharmacy)
+    Route::get('/pharmacy', [PharmacyController::class, 'sales'])->name('pharmacy.index');
+    Route::get('/pharmacy/items', [PharmacyController::class, 'items'])->name('pharmacy.items.index');
+    Route::get('/pharmacy/po', [PharmacyController::class, 'po'])->name('pharmacy.po.index');
+    Route::get('/pharmacy/grn', [PharmacyController::class, 'grn'])->name('pharmacy.grn.index');
+
+    // Legacy diagnosis routes (removed from sidebar)
     Route::get('/diagnosis', [DiagnosisController::class, 'index'])->name('diagnosis.index');
     Route::get('/diagnosis/create', [DiagnosisController::class, 'create'])->name('diagnosis.create');
     Route::post('/diagnosis', [DiagnosisController::class, 'store'])->name('diagnosis.store');

@@ -53,6 +53,7 @@
         @php
             $isActive = $currentRoute == $menuItem->route
                 || ($menuItem->route === 'laboratory.index' && str_starts_with($currentRoute ?? '', 'laboratory.'))
+                || ($menuItem->route === 'pharmacy.index' && str_starts_with($currentRoute ?? '', 'pharmacy.'))
                 || ($menuItem->route === 'master.index' && str_starts_with($currentRoute ?? '', 'master.'))
                 || ($menuItem->route === 'billing.index' && str_starts_with($currentRoute ?? '', 'billing.'));
         @endphp

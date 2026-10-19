@@ -18,6 +18,10 @@ class MasterServiceMaintenanceService
     {
         $query = trim($query);
 
+        if ($query === '') {
+            return collect();
+        }
+
         return HospitalService::query()
             ->when($query !== '', function ($builder) use ($query) {
                 $builder->where(function ($inner) use ($query) {
@@ -35,6 +39,10 @@ class MasterServiceMaintenanceService
     {
         $query = trim($query);
         $departments = array_keys(config('diagnosis.lab_departments', []));
+
+        if ($query === '') {
+            return collect();
+        }
 
         return LegacyLabTest::query()
             ->whereIn('group_id', $departments)

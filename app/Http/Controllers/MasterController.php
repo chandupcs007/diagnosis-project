@@ -317,10 +317,10 @@ class MasterController extends Controller
     public function searchHospitalServices(Request $request)
     {
         $validated = $request->validate([
-            'q' => 'nullable|string|max:100',
+            'q' => 'required|string|min:1|max:100',
         ]);
 
-        $results = $this->masterServiceMaintenanceService->searchHospitalServices($validated['q'] ?? '');
+        $results = $this->masterServiceMaintenanceService->searchHospitalServices($validated['q']);
 
         return response()->json(['results' => $results]);
     }
@@ -370,10 +370,10 @@ class MasterController extends Controller
     public function searchLaboratoryServices(Request $request)
     {
         $validated = $request->validate([
-            'q' => 'nullable|string|max:100',
+            'q' => 'required|string|min:1|max:100',
         ]);
 
-        $results = $this->masterServiceMaintenanceService->searchLaboratoryServices($validated['q'] ?? '');
+        $results = $this->masterServiceMaintenanceService->searchLaboratoryServices($validated['q']);
 
         return response()->json(['results' => $results]);
     }

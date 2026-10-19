@@ -55,9 +55,9 @@ class MenuItemsSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Diagnosis',
-                'icon' => 'fas fa-fw fa-diagnoses',
-                'route' => 'diagnosis.index',
+                'name' => 'Pharmacy',
+                'icon' => 'fas fa-fw fa-pills',
+                'route' => 'pharmacy.index',
                 'parent_id' => 0,
                 'order' => 6,
                 'is_active' => true,
