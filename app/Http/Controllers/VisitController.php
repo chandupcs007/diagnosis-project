@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Visit;
 use App\Models\Person;
 use App\Models\User;
+use App\Services\MasterServiceCreationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,21 +16,17 @@ class VisitController extends Controller
      */
  public function create($patientId)
 {
-    $patient = Person::findOrFail($patientId);
-    
+    $patient = Person::withCount('visits')->findOrFail($patientId);
+
+    if ($patient->hasVisit()) {
+        return redirect()->route('patients.index', request()->only('search'))
+            ->with('error', 'A visit has already been created for this patient.');
+    }
+
     // Get only users with doctor role
     $doctors = User::where('role', 'doctor')->get();
     
-    $departments = [
-        'Cardiology',
-        'Neurology',
-        'Orthopedics',
-        'Pediatrics',
-        'Dermatology',
-        'Ophthalmology',
-        'Dentistry',
-        'General Medicine'
-    ];
+    $departments = config('diagnosis.departments');
 
     return view('visits.create', compact('patient', 'doctors', 'departments'));
 }
@@ -48,12 +45,18 @@ class VisitController extends Controller
             'prescription' => 'nullable|string',
             'visit_date' => 'required|date',
             'visit_time' => 'required|date_format:H:i',
+            'payer_type' => 'required|in:self_pay,insurance',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
+        }
+
+        if (Visit::where('patient_id', $request->patient_id)->exists()) {
+            return redirect()->route('patients.index')
+                ->with('error', 'A visit has already been created for this patient.');
         }
 
         // Generate unique visit number
@@ -69,7 +72,8 @@ class VisitController extends Controller
             'prescription' => $request->prescription,
             'visit_date' => $request->visit_date,
             'visit_time' => $request->visit_time,
-            'status' => 'scheduled'
+            'status' => 'scheduled',
+            'payer_type' => $request->payer_type,
         ]);
 
         return redirect()->route('visits.show', $visit->id)
@@ -81,8 +85,50 @@ class VisitController extends Controller
      */
     public function show($id)
     {
-        $visit = Visit::with(['patient', 'doctor'])->findOrFail($id);
-        return view('visits.show', compact('visit'));
+        $visit = Visit::with([
+            'patient',
+            'doctor',
+            'vitals.savedBy',
+            'diagnoses',
+            'chiefComplaints',
+            'histories',
+            'billingServices.labRequest',
+            'labResults',
+            'radiologyResults',
+            'prescriptions.doctor',
+        ])->findOrFail($id);
+
+        $activeTab = request('tab', 'vitals');
+        $masterCatalog = app(MasterServiceCreationService::class);
+        $hospitalCategories = $masterCatalog->hospitalCategories();
+        $labDepartments = config('diagnosis.lab_departments', []);
+        $billingCatalog = $masterCatalog->billingCatalog();
+
+        $previousVisits = Visit::with([
+            'doctor',
+            'vitals.savedBy',
+            'diagnoses',
+            'chiefComplaints',
+            'histories',
+            'billingServices',
+            'labResults',
+            'radiologyResults',
+            'prescriptions.doctor',
+        ])
+            ->where('patient_id', $visit->patient_id)
+            ->where('id', '!=', $visit->id)
+            ->orderByDesc('visit_date')
+            ->orderByDesc('visit_time')
+            ->get();
+
+        return view('visits.show', compact(
+            'visit',
+            'activeTab',
+            'hospitalCategories',
+            'labDepartments',
+            'billingCatalog',
+            'previousVisits'
+        ));
     }
 
     /**

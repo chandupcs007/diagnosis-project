@@ -10,8 +10,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MenuItemsSeeder::class,
+            HospitalSettingSeeder::class,
             DoctorsSeeder::class,
-            // Add other seeders here
+            DoctorScheduleSeeder::class,
+            LabTestSeeder::class,
+            HospitalServiceCatalogSeeder::class,
+            PaymentTypeSeeder::class,
         ]);
     }
 }
