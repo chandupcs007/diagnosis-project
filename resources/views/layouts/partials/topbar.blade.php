@@ -1,16 +1,34 @@
 <!-- Topbar -->
-<nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-    <!-- Sidebar Toggle (Topbar) -->
-    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+<nav class="navbar navbar-expand navbar-light topbar static-top sqa-topbar">
+    <button id="sidebarToggleTop" class="btn btn-link rounded-circle sqa-topbar-toggle" type="button" aria-label="Toggle sidebar">
         <i class="fa fa-bars"></i>
     </button>
 
-    <!-- Topbar Navbar -->
-    <ul class="navbar-nav ml-auto">
+    <div class="sqa-topbar-brand ms-2 ms-md-3">
+        @if($hospitalSetting->logo_url)
+            <img src="{{ $hospitalSetting->logo_url }}"
+                 alt="{{ $hospitalSetting->hospital_name }}"
+                 class="sqa-topbar-logo">
+        @else
+            <div class="sqa-topbar-logo-fallback" aria-hidden="true">
+                <i class="fas fa-hospital"></i>
+            </div>
+        @endif
+        <div class="sqa-topbar-hospital">
+            <span class="sqa-topbar-hospital-name">{{ $hospitalSetting->hospital_name }}</span>
+        </div>
+    </div>
+
+    <ul class="navbar-nav ms-auto align-items-center flex-row">
         @if(Auth::check())
-        <li class="nav-item">
-            <span class="navbar-text mr-3">
-                Welcome, {{ Auth::user()->name }}
+        <li class="nav-item me-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-fullscreen-toggle aria-label="Enter full screen" title="Full screen (F11)">
+                <i class="fas fa-expand fa-sm"></i>
+            </button>
+        </li>
+        <li class="nav-item me-3">
+            <span class="navbar-text">
+                {{ Auth::user()->name }}
             </span>
         </li>
         <li class="nav-item">

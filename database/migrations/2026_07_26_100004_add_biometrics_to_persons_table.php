@@ -1,0 +1,24 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('persons', function (Blueprint $table) {
+            $table->string('photo_path')->nullable()->after('medical_history');
+            $table->string('fingerprint_hash', 64)->nullable()->unique()->after('photo_path');
+            $table->timestamp('fingerprint_captured_at')->nullable()->after('fingerprint_hash');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('persons', function (Blueprint $table) {
+            $table->dropColumn(['photo_path', 'fingerprint_hash', 'fingerprint_captured_at']);
+        });
+    }
+};

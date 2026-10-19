@@ -9,13 +9,24 @@
     
     <title>Diagnosis Project - @yield('title')</title>
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <!-- Vite CSS -->
     @vite(['resources/css/app.css'])
+
+    <!-- SQA-io Theme -->
+    <link href="{{ asset('css/sqa-theme.css') }}" rel="stylesheet">
     
     @stack('styles')
 </head>
 
-<body id="page-top">
+<body id="page-top"
+    @auth
+        data-authenticated="1"
+        @if(session('enter_fullscreen')) data-enter-fullscreen="1" @endif
+    @endauth
+>
     <!-- Page Wrapper -->
     <div id="wrapper">
         <!-- Sidebar -->
@@ -26,15 +37,14 @@
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
             <div id="content">
-                <!-- Topbar -->
-                @include('layouts.partials.topbar')
-                <!-- End of Topbar -->
+                <div class="sqa-content-header">
+                    @include('layouts.partials.topbar')
+                    @stack('page-header')
+                </div>
 
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
+                <div class="container-fluid sqa-page-body">
                     @yield('content')
                 </div>
-                <!-- /.container-fluid -->
             </div>
             <!-- End of Main Content -->
 
@@ -55,5 +65,6 @@
     @vite(['resources/js/app.js'])
     
     @stack('scripts')
+    <script src="{{ asset('js/fullscreen.js') }}"></script>
 </body>
 </html>

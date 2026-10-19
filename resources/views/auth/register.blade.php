@@ -75,7 +75,7 @@
         }
     </style>
 </head>
-<body>
+<body data-auth-form="register">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -98,7 +98,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('register') }}">
+                        <form method="POST" action="{{ route('register') }}" data-auth-form>
                             @csrf
                             
                             <div class="mb-3">
@@ -164,5 +164,6 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/fullscreen.js') }}"></script>
 </body>
 </html>

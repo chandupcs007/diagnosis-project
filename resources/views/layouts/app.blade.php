@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <title>{{ config('diagnosis.name') }} - @yield('title')</title>
     
@@ -13,18 +14,26 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- SB Admin 2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/startbootstrap-sb-admin-2@4.1.4/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- SQA-io Theme -->
+    <link href="{{ asset('css/sqa-theme.css') }}" rel="stylesheet">
     
     @stack('styles')
 </head>
 
-<body id="page-top">
+<body id="page-top"
+    @auth
+        data-authenticated="1"
+        @if(session('enter_fullscreen')) data-enter-fullscreen="1" @endif
+    @endauth
+>
     <!-- Page Wrapper -->
     <div id="wrapper">
         <!-- Sidebar -->
@@ -35,16 +44,14 @@
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
             <div id="content">
-                <!-- Topbar -->
-                @include('layouts.partials.topbar')
-                <!-- End of Topbar -->
+                <div class="sqa-content-header">
+                    @include('layouts.partials.topbar')
+                    @stack('page-header')
+                </div>
 
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-                    <!-- Page content goes here -->
+                <div class="container-fluid sqa-page-body">
                     @yield('content')
                 </div>
-                <!-- /.container-fluid -->
             </div>
             <!-- End of Main Content -->
 
@@ -62,13 +69,9 @@
     </a>
 
     <!-- Bootstrap core JavaScript-->
-<script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-<script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-<!-- Core plugin JavaScript-->
-<script src="{{ asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-<!-- Custom scripts for all pages-->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js"></script>
 <script src="{{ asset('vendor/sb-admin-2/js/sb-admin-2.min.js') }}"></script>
 
 <script>
@@ -80,7 +83,7 @@
         }
 
         // Manual sidebar toggle handling
-        $('#sidebarToggle').on('click', function(e) {
+        $('#sidebarToggle, #sidebarToggleTop').on('click', function(e) {
             e.preventDefault();
             $('body').toggleClass('sidebar-toggled');
             $('.sidebar').toggleClass('toggled');
@@ -100,14 +103,12 @@
             $('.sidebar .collapse').not(this).collapse('hide');
         });
     });
-<!-- Add this script section to your layout file -->
- 
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Auto-dismiss all Bootstrap alerts after 5 seconds
         const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
         alerts.forEach(alert => {
             const dismissTime = alert.getAttribute('data-dismiss-time') || 5000;
-            
+
             setTimeout(() => {
                 if (alert.parentNode) {
                     const bsAlert = new bootstrap.Alert(alert);
@@ -119,5 +120,6 @@
 </script>
 
 @stack('scripts')
+<script src="{{ asset('js/fullscreen.js') }}"></script>
 </body>
 </html>

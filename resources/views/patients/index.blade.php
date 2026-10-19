@@ -2,263 +2,275 @@
 
 @section('title', 'Patients')
 
+@push('page-header')
+@include('layouts.partials.page-header', [
+    'title' => 'Patient Management',
+    'breadcrumb' => 'Patients',
+    'actions' => '<a href="' . route('patients.create') . '" class="btn btn-primary btn-sm"><i class="fas fa-user-plus fa-sm me-1"></i> Register New Patient</a>',
+])
+@endpush
+
 @section('content')
-<!-- Page Heading -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Patient Management</h1>
-    <a href="{{ route('patients.create') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-        <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Register New Patient
-    </a>
-</div>
-
-<div class="row">
-    <div class="col-lg-12">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Patient List</h6>
-                
-                <!-- Search Form -->
-                <form method="GET" action="{{ route('patients.index') }}" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                    <div class="input-group">
-                        <input type="text" name="search" class="form-control bg-light border-0 small" 
-                               placeholder="Search by ID or Name..." 
-                               value="{{ $search ?? '' }}"
-                               aria-label="Search" aria-describedby="basic-addon2">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search fa-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="card-body">
-                <!-- Success Alert with Auto-dismiss -->
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show auto-dismiss-alert" role="alert">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <div>{{ session('success') }}</div>
-                        </div>
-                        <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
-                    </div>
-                @endif
-
-                <!-- Search Results Alert with Auto-dismiss -->
-                @if(isset($search) && $search && $patients->count() > 0)
-                    <div class="alert alert-info alert-dismissible fade show auto-dismiss-alert" role="alert">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-search me-2"></i>
-                                <div>Showing results for: "<strong>{{ $search }}</strong>"</div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <a href="{{ route('patients.index') }}" class="btn btn-sm btn-outline-info me-2">
-                                    <i class="fas fa-times me-1"></i> Clear Search
-                                </a>
-                                <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Only show table if patients exist -->
-                @if($patients->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="patientsTable" width="100%" cellspacing="0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th width="80px">ID</th>
-                                <th>Name</th>
-                                <th>Date of Birth</th>
-                                <th>Age</th>
-                                <th>Gender</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                                <th width="140px" class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($patients as $patient)
-                            <tr>
-                                <td>
-                                    <strong class="text-primary">#{{ $patient->id }}</strong>
-                                </td>
-                                <td>
-                                    <strong>{{ $patient->first_name }} {{ $patient->last_name }}</strong>
-                                </td>
-                                <td>{{ $patient->date_of_birth->format('M d, Y') }}</td>
-                                <td>
-                                    <span class="badge bg-info text-white">{{ $patient->date_of_birth->age }} years</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ $patient->gender == 'male' ? 'primary' : ($patient->gender == 'female' ? 'danger' : 'secondary') }}">
-                                        <i class="fas fa-{{ $patient->gender == 'male' ? 'mars' : ($patient->gender == 'female' ? 'venus' : 'genderless') }} me-1"></i>
-                                        {{ ucfirst($patient->gender) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <i class="fas fa-phone text-muted me-1"></i>{{ $patient->phone }}
-                                </td>
-                                <td>
-                                    @if($patient->email)
-                                        <i class="fas fa-envelope text-muted me-1"></i>
-                                        <small>{{ $patient->email }}</small>
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </td>
-                               <!-- In the actions column, add this after the existing buttons -->
-<td>
-    <div class="d-flex justify-content-center gap-1">
-        <!-- View Button -->
-        <a href="{{ route('patients.show', $patient->id) }}" 
-           class="btn btn-info btn-sm px-2" 
-           title="View Patient Details"
-           data-bs-toggle="tooltip">
-            <i class="fas fa-eye fa-fw"></i>
-        </a>
-        
-        <!-- Create Visit Button -->
-        <a href="{{ route('visits.create', $patient->id) }}" 
-           class="btn btn-success btn-sm px-2" 
-           title="Create New Visit"
-           data-bs-toggle="tooltip">
-            <i class="fas fa-calendar-plus fa-fw"></i>
-        </a>
-        
-        <!-- Edit Button -->
-        <a href="{{ route('patients.edit', $patient->id) }}" 
-           class="btn btn-warning btn-sm px-2" 
-           title="Edit Patient"
-           data-bs-toggle="tooltip">
-            <i class="fas fa-edit fa-fw"></i>
-        </a>
-        
-        <!-- Delete Button -->
-        <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
-            @csrf
-            @method('DELETE')
-            <button type="submit" 
-                    class="btn btn-danger btn-sm px-2" 
-                    title="Delete Patient"
-                    data-bs-toggle="tooltip"
-                    onclick="return confirm('Are you sure you want to delete patient #{{ $patient->id }}? This action cannot be undone.')">
-                <i class="fas fa-trash fa-fw"></i>
-            </button>
-        </form>
-    </div>
-</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Search Help Text -->
-                @if(!isset($search) || !$search)
-                    <div class="mt-3 text-center">
-                        <small class="text-muted">
-                            <i class="fas fa-search me-1"></i>
-                            Use the search box above to find patients by ID, first name, or last name
-                        </small>
-                    </div>
-                @endif
-
-                @else
-                    <!-- No patients found - Immediate redirect -->
-                    @if(isset($search) && $search)
-                        <!-- Search with no results - Immediate redirect -->
-                        <div class="text-center py-5">
-                            <div class="alert alert-warning">
-                                <i class="fas fa-search fa-2x mb-3"></i>
-                                <h4>No patients found for "{{ $search }}"</h4>
-                                <p class="mb-3">Redirecting to patient registration...</p>
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <script>
-                            // Immediate redirect to patient registration
-                            window.location.href = "{{ route('patients.create') }}?search={{ urlencode($search) }}";
-                        </script>
-                    
-                    @else
-                        <!-- No patients at all (not a search) -->
-                        <div class="text-center py-5">
-                            <div class="text-muted">
-                                <i class="fas fa-users fa-3x mb-3 opacity-25"></i>
-                                <h4>No Patients Found</h4>
-                                <p class="mb-4">Get started by registering your first patient.</p>
-                                <a href="{{ route('patients.create') }}" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-user-plus me-2"></i>Register First Patient
-                                </a>
-                            </div>
-                        </div>
-                    @endif
-                @endif
-            </div>
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show auto-dismiss-alert mb-3" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <div>{{ session('success') }}</div>
         </div>
+        <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show auto-dismiss-alert mb-3" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <div>{{ session('error') }}</div>
+        </div>
+        <button type="button" class="btn-close" onclick="closeAlert(this)"></button>
+    </div>
+@endif
+
+<div class="card shadow-sm mb-4 sqa-list-card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold">Patient List</h6>
+        @if($patients->count() > 0)
+            <span class="sqa-list-count">{{ $patients->count() }} {{ Str::plural('record', $patients->count()) }}</span>
+        @endif
+    </div>
+
+    <div class="sqa-list-toolbar">
+        <form method="GET" action="{{ route('patients.index') }}" class="sqa-search-form">
+            <div class="sqa-search-input-group">
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Search by ID, first name, or last name..."
+                       value="{{ $search ?? '' }}"
+                       aria-label="Search patients">
+                <button class="btn btn-primary" type="submit" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <div class="sqa-fingerprint-search-wrap">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="fingerprint-search-btn" title="Scan fingerprint to open patient">
+                <i class="fas fa-fingerprint me-1"></i> Scan Fingerprint
+            </button>
+            <span class="sqa-fingerprint-search-status text-muted" id="fingerprint-search-status"></span>
+        </div>
+
+        @if(isset($search) && $search)
+            <a href="{{ route('patients.index') }}" class="sqa-clear-search">
+                <i class="fas fa-times me-1"></i> Clear
+            </a>
+        @endif
+    </div>
+
+    <div id="fingerprint-search-alert" class="alert alert-warning py-2 px-3 mb-0 d-none sqa-fingerprint-search-banner" role="alert"></div>
+
+    @if(isset($search) && $search && $patients->count() > 0)
+        @php
+            $patientsWithVisits = $patients->filter(fn ($p) => $p->hasVisit())->count();
+        @endphp
+        <div class="sqa-search-banner">
+            <i class="fas fa-search me-2"></i>
+            Results for <strong>&ldquo;{{ $search }}&rdquo;</strong>
+            @if($patientsWithVisits > 0)
+                <span class="sqa-search-visit-hint">
+                    <i class="fas fa-calendar-check ms-2 me-1"></i>
+                    {{ $patientsWithVisits }} {{ Str::plural('patient', $patientsWithVisits) }} with existing {{ Str::plural('visit', $patientsWithVisits) }} highlighted in green
+                </span>
+            @endif
+        </div>
+    @endif
+
+    <div class="card-body p-0">
+        @if($patients->count() > 0)
+            <div class="table-responsive">
+                <table class="table table-hover sqa-data-table mb-0" id="patientsTable">
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th class="col-name">Name</th>
+                            <th class="col-dob">Date of Birth</th>
+                            <th class="col-age">Age</th>
+                            <th class="col-gender">Gender</th>
+                            <th class="col-phone">Phone</th>
+                            <th class="col-email">Email</th>
+                            <th class="col-actions text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($patients as $patient)
+                        <tr class="{{ $patient->hasVisit() ? 'sqa-row-has-visit' : '' }}">
+                            <td class="col-id">
+                                <span class="sqa-patient-id">{{ $patient->display_id }}</span>
+                                @if($patient->isTemp())
+                                    <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">Temp</span>
+                                @endif
+                            </td>
+                            <td class="col-name">
+                                <div class="sqa-name-cell">
+                                    <span class="sqa-patient-name">{{ trim($patient->first_name . ' ' . $patient->last_name) ?: '—' }}</span>
+                                    @if($patient->hasVisit() && $patient->latestVisit)
+                                        <a href="{{ route('visits.show', $patient->latestVisit->id) }}"
+                                           class="sqa-visit-badge"
+                                           title="View visit {{ $patient->latestVisit->visit_number }}">
+                                            <i class="fas fa-calendar-check"></i>
+                                            {{ $patient->latestVisit->visit_number }}
+                                        </a>
+                                    @elseif($patient->hasVisit())
+                                        <span class="sqa-visit-badge sqa-visit-badge-static" title="Visit already created">
+                                            <i class="fas fa-calendar-check"></i> Visit exists
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="col-dob">{{ $patient->date_of_birth->format('M d, Y') }}</td>
+                            <td class="col-age">{{ $patient->date_of_birth->age }} yrs</td>
+                            <td class="col-gender">
+                                <span class="sqa-gender sqa-gender-{{ $patient->gender }}">
+                                    <i class="fas fa-{{ $patient->gender == 'male' ? 'mars' : ($patient->gender == 'female' ? 'venus' : 'genderless') }}"></i>
+                                    {{ ucfirst($patient->gender) }}
+                                </span>
+                            </td>
+                            <td class="col-phone">
+                                @if($patient->phone)
+                                    {{ $patient->phone }}
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="col-email">
+                                @if($patient->email)
+                                    <span class="sqa-email" title="{{ $patient->email }}">{{ $patient->email }}</span>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="col-actions text-end">
+                                <div class="sqa-row-actions">
+                                    <a href="{{ route('patients.show', $patient->id) }}"
+                                       class="sqa-action-btn"
+                                       title="View"
+                                       data-bs-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($patient->hasVisit() && $patient->latestVisit)
+                                        <a href="{{ route('visits.show', $patient->latestVisit->id) }}"
+                                           class="sqa-action-btn sqa-action-visit-details"
+                                           title="View Visit Details ({{ $patient->latestVisit->visit_number }})"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-file-medical"></i>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('visits.create', $patient->id) }}"
+                                           class="sqa-action-btn sqa-action-visit"
+                                           title="Generate Visit"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </a>
+                                    @endif
+                                    <a href="{{ route('patients.edit', $patient->id) }}"
+                                       class="sqa-action-btn sqa-action-edit"
+                                       title="Edit"
+                                       data-bs-toggle="tooltip">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @unless($patient->hasVisit())
+                                        <form action="{{ route('patients.destroy', $patient->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="sqa-action-btn sqa-action-delete"
+                                                    title="Delete"
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="return confirm('Delete patient #{{ $patient->id }}? This cannot be undone.')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endunless
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            @if(isset($search) && $search)
+                <div class="sqa-empty-state">
+                    <i class="fas fa-search"></i>
+                    <h4>No patients found</h4>
+                    <p>No match for &ldquo;{{ $search }}&rdquo;. Try a different search or register a new patient.</p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a href="{{ route('patients.index') }}" class="btn btn-secondary btn-sm">Clear Search</a>
+                        <a href="{{ route('patients.create') }}?search={{ urlencode($search) }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-user-plus me-1"></i> Register Patient
+                        </a>
+                    </div>
+                </div>
+            @else
+                <div class="sqa-empty-state">
+                    <i class="fas fa-users"></i>
+                    <h4>No patients yet</h4>
+                    <p>Register your first patient to get started.</p>
+                    <a href="{{ route('patients.create') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i> Register First Patient
+                    </a>
+                </div>
+            @endif
+        @endif
     </div>
 </div>
 @endsection
 
-@push('styles')
-<style>
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.075);
-    }
-    .navbar-search {
-        width: 300px;
-    }
-    .auto-dismiss-alert {
-        transition: opacity 0.5s ease-in-out;
-    }
-</style>
-@endpush
-
 @push('scripts')
+@php
+    $biometricService = app(\App\Services\PatientBiometricService::class);
+    $simulationPatients = config('diagnosis.fingerprint_simulation')
+        ? $patients->filter(fn ($p) => $p->hasFingerprint())->map(fn ($p) => [
+            'id' => $p->id,
+            'name' => $p->full_name,
+            'pid' => $p->display_id,
+            'simulation_template' => $biometricService->buildSimulationTemplate($p),
+        ])->values()
+        : collect();
+@endphp
 <script>
-    // Simple alert close function
+    window.SqaFingerprintSearch = {
+        searchUrl: @json(route('patients.search-fingerprint')),
+        fingerprintBridgeUrl: @json(config('diagnosis.fingerprint_bridge_url')),
+        fingerprintBridgeTimeout: @json(config('diagnosis.fingerprint_bridge_timeout')),
+        fingerprintSimulation: @json((bool) config('diagnosis.fingerprint_simulation')),
+        simulationPatients: @json($simulationPatients),
+    };
+</script>
+<script src="{{ asset('js/patient-fingerprint-search.js') }}"></script>
+<script>
     function closeAlert(button) {
         const alert = button.closest('.alert');
         if (alert) {
             alert.style.opacity = '0';
-            setTimeout(() => {
-                if (alert.parentNode) {
-                    alert.parentNode.removeChild(alert);
-                }
-            }, 500);
+            setTimeout(() => alert.remove(), 500);
         }
     }
 
-    // Auto-dismiss alerts after 5 seconds
     document.addEventListener('DOMContentLoaded', function() {
-        const alerts = document.querySelectorAll('.auto-dismiss-alert');
-        
-        alerts.forEach(function(alert) {
+        document.querySelectorAll('.auto-dismiss-alert').forEach(function(alert) {
             setTimeout(function() {
-                if (alert.parentNode) {
-                    alert.style.opacity = '0';
-                    setTimeout(function() {
-                        if (alert.parentNode) {
-                            alert.parentNode.removeChild(alert);
-                        }
-                    }, 500);
-                }
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
             }, 5000);
         });
 
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+            new bootstrap.Tooltip(el);
         });
-        
-        // Clear search when pressing Escape in search field
-        const searchInput = document.querySelector('input[name="search"]');
+
+        const searchInput = document.querySelector('.sqa-search-form input[name="search"]');
         if (searchInput) {
             searchInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {

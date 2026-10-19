@@ -13,8 +13,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'photo_path',
         'password',
         'role',
+        'department',
         'specialization',
         'phone',
         'address',
@@ -64,5 +66,33 @@ class User extends Authenticatable
     public function scopeDoctors($query)
     {
         return $query->where('role', 'doctor');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(DoctorSchedule::class, 'doctor_id');
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'doctor_id');
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return app(\App\Services\UserPhotoService::class)->photoUrl($this->photo_path);
+    }
+
+    public function getDisplayDepartmentAttribute(): string
+    {
+        if ($this->department) {
+            return $this->department;
+        }
+
+        if ($this->specialization) {
+            return $this->specialization;
+        }
+
+        return ucfirst($this->role ?? 'User');
     }
 }
